@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  image       String    @default("")
+  description String    @default("")
+  parentId    String?
+  parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Product {
+  id            String    @id @default(cuid())
+  name          String
+  slug          String    @unique
+  description   String    @default("")
+  price         Float
+  mrp           Float
+  images        String    @default("[]")
+  categoryId    String
+  category      Category  @relation(fields: [categoryId], references: [id])
+  brand         String    @default("")
+  stock         Int       @default(0)
+  sold          Int       @default(0)
+  rating        Float     @default(0)
+  reviewCount   Int       @default(0)
+  specifications String   @default("{}")
+  tags          String    @default("[]")
+  isFeatured    Boolean   @default(false)
+  isTrending    Boolean   @default(false)
+  isFlashDeal   Boolean   @default(false)
+  flashPrice    Float?
+  sellerId      String    @default("seller1")
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  reviews       Review[]
+
+  @@index([categoryId])
+  @@index([sellerId])
+  @@index([brand])
+  @@index([price])
+}
+
+model User {
+  id          String   @id @default(cuid())
+  name        String
+  email       String   @unique
+  password    String   @default("")
+  role        String   @default("customer")
+  avatar      String   @default("")
+  phone       String   @default("")
+  address     String   @default("")
+  city        String   @default("")
+  state       String   @default("")
+  pincode     String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Review {
+  id           String   @id @default(cuid())
+  productId    String
+  product      Product  @relation(fields: [productId], references: [id])
+  userId       String   @default("")
+  userName     String   @default("")
+  userAvatar   String   @default("")
+  rating       Int
+  title        String   @default("")
+  comment      String   @default("")
+  isVerified   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now())
+
+  @@index([productId])
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  userId        String   @default("")
+  items         String   @default("[]")
+  totalAmount   Float
+  discount      Float    @default(0)
+  status        String   @default("placed")
+  paymentMethod String   @default("cod")
+  paymentStatus String   @default("pending")
+  sellerId      String   @default("")
+  address       String   @default("")
+  city          String   @default("")
+  state         String   @default("")
+  pincode       String   @default("")
+  phone         String   @default("")
+  trackingInfo  String   @default("[]")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([sellerId])
+  @@index([status])
+}
+
+model Coupon {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  discount    Float
+  minOrder    Float     @default(0)
+  maxDiscount Float     @default(0)
+  isActive    Boolean   @default(true)
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
